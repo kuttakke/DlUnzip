@@ -108,6 +108,7 @@ def unzip(path: Path):
 
 
 def run(path_str: str):
+    PWhandler.load_all_pws()
     path = Path(path_str)
     last_file_name = ""
     for file in path.iterdir():

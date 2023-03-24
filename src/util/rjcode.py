@@ -3,6 +3,8 @@ import re
 import httpx
 from lxml import html
 
+from .retry import retry
+
 
 def get_rjcode(value: str) -> str | None:
     regex = r"RJ(\d{8}|\d{6})"
@@ -10,6 +12,7 @@ def get_rjcode(value: str) -> str | None:
         return res[0]
 
 
+@retry()
 def get_rj_title(value: str) -> str | None:
     rjcode = get_rjcode(value)
     if not rjcode:
