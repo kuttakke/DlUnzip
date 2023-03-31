@@ -43,15 +43,16 @@ def is_child_unzipable(path: Path):
 
 
 def unzip_child(path: Path):
-    last_file_name = ""
+    is_first = True
     for file in path.iterdir():
         if file.is_file():
-            # 检查文件名是否有变化
-            if file.stem == last_file_name and file.suffix != ".zip":
+            # 检查分卷
+            if not is_first and "part" in file.stem:
                 logger.warning(f"Skip {file} 疑似是分卷文件，不压缩")
                 continue
             unzip(file)
-            last_file_name = file.stem
+            is_first = False
+    # TODO 检查分卷是否全部解压，有则删除并移动文件
 
 
 def _sucess(archive_path, destination_path, path, new_path):
@@ -76,13 +77,9 @@ def _sucess(archive_path, destination_path, path, new_path):
 
 
 def unzip(path: Path):
-    if path.suffix != ".zip":
-        if path.with_suffix(".zip").exists():
-            logger.info(f"{path.with_suffix('.zip').exists()} 已存在， 重命名失败， 跳过")
-            return
-        path = path.rename(path.with_suffix(".zip"))
+    if "." not in path.name:
         logger.success(f"Rename {path} to {path.with_suffix('.zip')}")
-    # unzip
+        path = path.rename(path.with_suffix(".zip"))
     pws = PWhandler.get_all_pws(path.name)
     # try unzip with none password
     if extract_7z(path):
