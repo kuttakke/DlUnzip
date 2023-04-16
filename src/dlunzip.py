@@ -97,12 +97,33 @@ def try_test_with_password(path: Path, password: list[str]) -> Pw:
 #     return "GBK"
 
 
+def get_all_file_name(path: Path, _file_list) -> list[str]:
+    if not _file_list:
+        _file_list = []
+    for file in path.iterdir():
+        _file_list.append(file.name)
+        if file.is_dir():
+            get_all_file_name(file, _file_list)
+    return _file_list
+
+
+def get_format(file_name_list: list[str]) -> str:
+    for file_name in file_name_list:
+        try:
+            file_name.encode("gbk").decode("gbk")
+        except UnicodeDecodeError:
+            return "shift-jis"
+    return "GBK"
+
+
 def check_and_rename_file(path: Path):
+    format_ = get_format(get_all_file_name(path, []))
+    if format_ == "GBK":
+        return
     for file in path.iterdir():
         name = file.name
-        with contextlib.suppress(UnicodeDecodeError):
-            true_name = name.encode("gbk").decode("shift-jis")
-            file = file.rename(file.parent / true_name)
+        true_name = name.encode("gbk").decode("shift-jis")
+        file = file.rename(file.parent / true_name)
         if file.is_dir():
             check_and_rename_file(file)
 
