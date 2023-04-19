@@ -1,15 +1,22 @@
 import contextlib
+import os
 import random
 import shutil
 import subprocess
 from pathlib import Path
 
-from loguru import logger
-from plyer import notification
-
+import sentry_sdk
 from exception import NotArchiveError, PasswordError
+from loguru import logger
 from password.handler import Pw, PWhandler
+from plyer import notification
 from util.rjcode import get_rj_title
+
+if _dsn := os.getenv("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=_dsn,
+        traces_sample_rate=1.0,
+    )
 
 logger.add(
     Path(__file__).parent / "logs" / "dlunzip.log", rotation="1 day", encoding="utf-8"
@@ -107,18 +114,26 @@ def get_all_file_name(path: Path, _file_list) -> list[str]:
     return _file_list
 
 
-def get_format(file_name_list: list[str]) -> str:
+def is_normal_format(file_name: str, format_: str) -> bool:
+    try:
+        file_name.encode(format_).decode(format_)
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        return False
+    return True
+
+
+def is_normal_file_name(file_name_list: list[str]) -> bool:
+    # sourcery skip: use-any, use-next
     for file_name in file_name_list:
-        try:
-            file_name.encode("gbk").decode("gbk")
-        except UnicodeDecodeError:
-            return "shift-jis"
-    return "GBK"
+        if not is_normal_format(file_name, "shift-jis") and not is_normal_format(
+            file_name, "GBK"
+        ):
+            return False
+    return True
 
 
 def check_and_rename_file(path: Path):
-    format_ = get_format(get_all_file_name(path, []))
-    if format_ == "GBK":
+    if is_normal_file_name(get_all_file_name(path, [])):
         return
     for file in path.iterdir():
         name = file.name
@@ -250,11 +265,11 @@ def run(path_str: str):
         if file.is_file():
             # 检查文件名是否有变化
             if file.stem == last_file_name and file.suffix != ".zip":
-                logger.warning(f"Skip {file} 疑似是分卷文件，不压缩")
+                logger.warning(f"Skip {file} 疑似是分卷文件，不解压")
                 continue
             unzip(file)
             last_file_name = file.stem
 
 
 if __name__ == "__main__":
-    run(r"path")
+    run(r"F:\Down\For\Ad")
