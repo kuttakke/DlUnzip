@@ -15,6 +15,11 @@ dependencies = [
 ]
 requires-python = ">=3.10"
 license = {text = "MIT"}
+
+[tool.pdm.scripts]
+unzip = "python ./src/dlunzip.py"
+rmc = "python ./src/messyCode.py"
+
 [tool.pdm.dev-dependencies]
 dev = [
     "black>=22.8.0",
