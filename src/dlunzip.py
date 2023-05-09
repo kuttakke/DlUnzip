@@ -1,3 +1,4 @@
+import argparse
 import contextlib
 import os
 import random
@@ -152,7 +153,8 @@ def extract_7z(path: Path, password=None, is_child=False):
     if password:
         cmd.append(f"-p{password}")
     logger.info(
-        f"解压 {Path(archive_path).name} to {Path(destination_path).name} 密码： {password}"
+        f"解压 {Path(archive_path).name} to {Path(destination_path).name}"
+        f"密码： {password}"
         if password
         else f"不使用密码解压 {archive_path} to {destination_path}"
     )
@@ -272,4 +274,10 @@ def run(path_str: str):
 
 
 if __name__ == "__main__":
-    run(r"F:\Down\For\Ad")
+    parse = argparse.ArgumentParser()
+    path = parse.add_argument("-p", "--path", help="需要解压的文件夹", type=str)
+    args = parse.parse_args()
+    if args.path:
+        run(args.path)
+    else:
+        logger.error("请输入需要解压的文件夹")
