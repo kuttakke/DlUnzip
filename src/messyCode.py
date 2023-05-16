@@ -28,7 +28,7 @@ def cover(
                 file = file.rename(file.parent / real_name)
                 print(f"文件{file_name}已重命名为{real_name}")
             else:
-                _file_name_list.append(file_name)
+                _file_name_list.append(real_name)
         if file.is_dir():
             cover(file, ec, dc, checked, _file_name_list, _is_root=False)
     if _is_root and not checked:
@@ -48,11 +48,14 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--decode", help="目标编码", type=str, default="shift-jis")
 
     args = parser.parse_args()
-    root = args.root
+    path = args.path
     ec = args.encode
     dc = args.decode
-    cover(Path(root), ec, dc)
+    if not (p := Path(path)):
+        print("路径不存在")
+        exit()
+    cover(p, ec, dc)
     check = input("是否重命名文件？(y/n default: y)\n")
     if check == "n":
         exit()
-    cover(Path(root), ec, dc, checked=True)
+    cover(p, ec, dc, checked=True)
