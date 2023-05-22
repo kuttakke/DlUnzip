@@ -97,14 +97,6 @@ def try_test_with_password(path: Path, password: list[str]) -> Pw:
             return Pw(value=pw_input)
 
 
-# def get_decode_format(file_name_list: list[bytes]) -> str:
-#     for file_name in file_name_list:
-#         with contextlib.suppress(UnicodeDecodeError):
-#             file_name.decode("shift-jis")
-#             return "shift-jis"
-#     return "GBK"
-
-
 def get_all_file_name(path: Path, _file_list) -> list[str]:
     if not _file_list:
         _file_list = []
@@ -133,15 +125,15 @@ def is_normal_file_name(file_name_list: list[str]) -> bool:
     return True
 
 
-def check_and_rename_file(path: Path):
-    if is_normal_file_name(get_all_file_name(path, [])):
-        return
-    for file in path.iterdir():
-        name = file.name
-        true_name = name.encode("gbk").decode("shift-jis")
-        file = file.rename(file.parent / true_name)
-        if file.is_dir():
-            check_and_rename_file(file)
+# def check_and_rename_file(path: Path):
+#     if is_normal_file_name(get_all_file_name(path, [])):
+#         return
+#     for file in path.iterdir():
+#         name = file.name
+#         true_name = name.encode("gbk").decode("shift-jis")
+#         file = file.rename(file.parent / true_name)
+#         if file.is_dir():
+#             check_and_rename_file(file)
 
 
 def extract_7z(path: Path, password=None, is_child=False):
@@ -160,7 +152,7 @@ def extract_7z(path: Path, password=None, is_child=False):
     )
     code = subprocess.run(cmd, input=b"\n")
     if code.returncode == 0:
-        check_and_rename_file(new_path)
+        # check_and_rename_file(new_path)
         return _sucess(archive_path, destination_path, path, new_path, is_child)
     logger.error(f"解壓 {archive_path} to {destination_path} failed")
     # clean new path
@@ -251,7 +243,6 @@ def unzip(path: Path, is_child=False):
     extract_7z(path, current_pw or None, is_child)
 
 
-# TODO Rename this here and in `unzip`
 def _save_pw(pw: Pw):
     if not pw.value.startswith("RJ"):
         PWhandler.add_pw(pw.value)
