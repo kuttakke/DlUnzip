@@ -1,6 +1,6 @@
 [project]
-name = ""
-version = ""
+name = "DlUnzip"
+version = "0.1.0"
 description = ""
 authors = [
     {name = "KuTaKe", email = "kutakke@outlook.com"},
