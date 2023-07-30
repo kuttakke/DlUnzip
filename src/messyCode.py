@@ -48,7 +48,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--decode", help="目标编码", type=str, default="shift-jis")
 
     args = parser.parse_args()
-    path = args.path
+    path: str = args.path
+    path = path.removesuffix('"')
     ec = args.encode
     dc = args.decode
     if not (p := Path(path)):
