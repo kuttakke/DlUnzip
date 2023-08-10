@@ -34,6 +34,7 @@ class DlUnzip:
             Path(__file__).parent / "logs" / "dlunzip.log",
             rotation="1 day",
             encoding="utf-8",
+            level="DEBUG",
         )
         self.logger = logger  # type: ignore
 
@@ -62,6 +63,7 @@ class DlUnzip:
                         "ERROR: Wrong password",
                         "Cannot open encrypted archive. Wrong password?",
                         "ERROR: Data Error in encrypted file. Wrong password?",
+                        "ERROR: CRC Failed in encrypted file. Wrong password?",
                         "Cannot open the file as archive",
                         "([^\r\n]+)\r\n",
                         "(\d+%[^\r\n]+)",
@@ -76,16 +78,21 @@ class DlUnzip:
                 if index == 0:
                     use_password = True
                     process.sendline(password)
-                elif index in [1, 2, 3]:
+                elif index in [1, 2, 3, 4]:
                     if not self._is_show_password_info_once:
                         self._is_show_password_info_once = True
                         self.logger.info("加密压缩包，尝试使用密码库解压")
+                    process.kill()
+                    try:
+                        process.terminate(force=True)
+                    except Exception:
+                        break
                     raise PasswordError
-                elif index == 4:
-                    raise NotArchiveError
                 elif index == 5:
+                    raise NotArchiveError
+                elif index == 6:
                     self.process_str_handler(process.match.group(0).strip())  # type: ignore
-                elif index in [6, 7]:
+                elif index in [7, 8]:
                     is_show_process_info, is_show_once = self.handle_index_67(
                         index,
                         process,
@@ -94,10 +101,10 @@ class DlUnzip:
                         password,
                         use_password,
                     )
-                elif index == 8:
+                elif index == 9:
                     return
                 # 一般来说，这里不会出现EOF
-                elif index == 9:
+                elif index == 10:
                     self.logger.warning("EOF")
                     return
         finally:
@@ -164,8 +171,10 @@ class DlUnzip:
             raise PasswordError from e
         self.logger.success(f"解压完成 - {new_path.stem}")
         path.unlink()
-        title = get_rj_title(new_path.stem)
+        title = None if is_child else get_rj_title(new_path.stem)
         if title:
+            if (new_path.parent / title).exists():
+                title = f"{title}{random.randint(0, 1000)}"
             new_path = new_path.rename(new_path.parent / title)
             self.logger.success(f"重命名 - {new_path.stem}")
         notification.notify(
