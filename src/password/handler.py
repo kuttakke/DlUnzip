@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from pydantic import BaseModel
-
 from util.rjcode import get_rjcode
 
 
@@ -20,14 +19,14 @@ class PWhandler:
     @classmethod
     def load_all_pws(cls):
         if cls.password_file.exists():
-            cls.all_pws = AllPws.parse_file(cls.password_file)
+            cls.all_pws = AllPws.model_validate_json(cls.password_file.read_text())
         else:
             cls.password_file.touch()
-            cls.password_file.write_text(cls.all_pws.json())
+            cls.password_file.write_text(cls.all_pws.model_dump_json(indent=2))
 
     @classmethod
     def save_to_file(cls):
-        cls.password_file.write_text(cls.all_pws.json())
+        cls.password_file.write_text(cls.all_pws.model_dump_json(indent=2))
 
     @classmethod
     def add_pw(cls, pw: str):
