@@ -22,6 +22,7 @@ license = {text = "MIT"}
 [tool.pdm.scripts]
 unzip = "python ./src/dlunzip.py"
 rmc = "python ./src/messyCode.py"
+rname = "python ./src/rename.py"
 
 [tool.pdm.dev-dependencies]
 dev = [
