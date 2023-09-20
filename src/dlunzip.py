@@ -3,7 +3,7 @@ import re
 import shutil
 from pathlib import Path
 from time import sleep
-
+from send2trash import send2trash
 import wexpect
 from control import ControlUnzip
 from display import Display, LayoutName
@@ -170,7 +170,8 @@ class DlUnzip:
                 shutil.rmtree(path=new_path)
             raise PasswordError from e
         self.logger.success(f"解压完成 - {new_path.stem}")
-        path.unlink()
+        # path.unlink()
+        send2trash(path)
         title = None if is_child else get_rj_title(new_path.stem)
         if title:
             if (new_path.parent / title).exists():
